@@ -28,3 +28,14 @@
 2. Файл docker-compose.yml с установкой PostgreSQL и заполненными данными из файлов mock_data(*).csv.
 3. Скрипты DDL (SQL) создания таблиц фактов и измерений в соответствии с моделью снежинка/звезда.
 4. Скрипты DML (SQL) заполнения таблиц фактов и измерений из исходных данных.
+
+
+# Запуск:
+
+ ```
+git clone https://github.com/Pizza-hunter2005/BDSnowflake
+cd BDSnowflake
+docker compose up
+```
+# Диаграмма 
+<img src="bigdata - public.jpg" alt="Alt text">
