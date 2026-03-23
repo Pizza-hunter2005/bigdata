@@ -176,13 +176,12 @@ create table if not exists product (
 	product_brand_id int not null,
 	product_feedback_id int not null,
 	product_category_id int not null,
-	product_supplier_id int not null,
 	foreign key(product_info_id) references product_info(info_id),
 	foreign key(product_parameters_id) references product_parameters(parameters_id),
 	foreign key(product_brand_id) references product_brand(brand_id),
 	foreign key(product_feedback_id) references product_feedback(feedback_id),
-	foreign key(product_category_id) references product_category(category_id),
-	foreign key(product_supplier_id) references supplier(supplier_id)
+	foreign key(product_category_id) references product_category(category_id)
+	
 );
 
 
@@ -200,6 +199,8 @@ create table if not exists sale (
 	sale_product_id int,
 	sale_payment_id int,
 	sale_store_id int,
+	product_supplier_id int not null,
+	foreign key(product_supplier_id) references supplier(supplier_id),
 	foreign key(sale_customer_id) references customer(s_customer_id),
 	foreign key(sale_seller_id) references seller(s_seller_id),
 	foreign key(sale_product_id) references product(s_product_id),

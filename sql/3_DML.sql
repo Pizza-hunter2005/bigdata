@@ -97,26 +97,48 @@ select distinct
  seller_email
 from mock_data;
 
+
+insert into seller_info (info_id, seller_first_name, seller_last_name)
+values (0, 'unknown', 'unknown')
+on conflict do nothing;
+
+
+insert into seller_location (location_id, seller_country, seller_postal_code)
+values (0, 'unknown', '0000')
+on conflict do nothing;
+
+
+insert into seller_contacts (contact_id, seller_email)
+values (0, 'unknown')
+on conflict do nothing;
+
 insert into seller (
  s_seller_id,
  seller_info_id,
  seller_location_id,
  seller_contact_id
 )
-select distinct on (m.sale_seller_id)
+select
  m.sale_seller_id,
- si.info_id,
- sl.location_id,
- sc.contact_id
+ coalesce(min(si.info_id), 0),
+ coalesce(min(sl.location_id), 0),
+ coalesce(min(sc.contact_id), 0)
 from mock_data m
-join seller_info si
+
+left join seller_info si
  on m.seller_first_name = si.seller_first_name
  and m.seller_last_name = si.seller_last_name
-join seller_location sl
+
+left join seller_location sl
  on m.seller_country = sl.seller_country
  and m.seller_postal_code = sl.seller_postal_code
-join seller_contacts sc
- on m.seller_email = sc.seller_email;
+
+left join seller_contacts sc
+ on m.seller_email = sc.seller_email
+
+group by m.sale_seller_id
+
+on conflict (s_seller_id) do nothing;
 
 insert into store_info (
  store_name
@@ -278,21 +300,20 @@ insert into product (
  product_parameters_id,
  product_brand_id,
  product_feedback_id,
- product_category_id,
- product_supplier_id
+ product_category_id
 )
-select distinct on (m.sale_product_id)
+select
  m.sale_product_id,
- pi.info_id,
- pp.parameters_id,
- pb.brand_id,
- pf.feedback_id,
- pc.category_id,
- s.supplier_id
+ min(pi.info_id),
+ min(pp.parameters_id),
+ min(pb.brand_id),
+ min(pf.feedback_id),
+ min(pc.category_id)
 from mock_data m
 
-join product_info pi
- on m.product_name = pi.product_name
+join product_info pi on m.product_name = pi.product_name
+ and m.product_price = pi.product_price and
+ m.product_quantity = pi.product_quantity
 
 join product_parameters pp
  on m.product_weight = pp.product_weight
@@ -300,8 +321,7 @@ join product_parameters pp
  and m.product_size = pp.product_size
  and m.product_material = pp.product_material
 
-join product_brand pb
- on m.product_brand = pb.product_brand
+join product_brand pb on m.product_brand = pb.product_brand
 
 join product_feedback pf
  on m.product_rating = pf.product_rating
@@ -310,11 +330,9 @@ join product_feedback pf
 join product_category pc
  on m.product_category = pc.product_category
 
-join supplier_info si
- on m.supplier_name = si.supplier_name
+group by m.sale_product_id
 
-join supplier s
- on s.supplier_info_id = si.info_id;
+on conflict (s_product_id) do nothing;
 
 insert into sale_payment (
  sale_quantity,
@@ -325,47 +343,36 @@ select distinct
  sale_total_price
 from mock_data;
 
+
 insert into sale (
  sale_date,
  sale_customer_id,
  sale_seller_id,
  sale_product_id,
  sale_payment_id,
- sale_store_id
+ sale_store_id,
+ product_supplier_id
 )
-select distinct 
- m.sale_date,
+select m.sale_date, 
  m.sale_customer_id,
- m.sale_seller_id,
- m.sale_product_id,
- sp.payment_id,
- st.store_id
-from mock_data m
-
-join sale_payment sp
- on sp.sale_quantity = m.sale_quantity
- and sp.sale_total_price = m.sale_total_price
-
-join store_contacts sc
- on sc.store_phone = m.store_phone
- and sc.store_email = m.store_email
-
-join store_location sl
- on sl.store_location = m.store_location
- and sl.store_city = m.store_city
- and sl.store_state = m.store_state
- and sl.store_country = m.store_country
-
-join store_info si
- on si.store_name = m.store_name
-
-join store st
- on st.store_contact_id = sc.contact_id
- and st.store_location_id = sl.location_id
- and st.store_info_id = si.info_id;
-
-select count(*) from mock_data;
-select count(*) from customer;
-select count(*) from seller;
-select count(*) from product;
-select count(*) from sale;
+ m.sale_seller_id, 
+ m.sale_product_id, 
+ sp.payment_id, 
+ st.store_id, 
+ s.supplier_id 
+from mock_data m 
+join sale_payment sp 
+on sp.sale_quantity = m.sale_quantity 
+and sp.sale_total_price = m.sale_total_price 
+join store_contacts sc on sc.store_phone = m.store_phone 
+and sc.store_email = m.store_email 
+join store_location sl on sl.store_location = m.store_location 
+and sl.store_city = m.store_city 
+and sl.store_state = m.store_state 
+and sl.store_country = m.store_country 
+join store_info si on si.store_name = m.store_name 
+join store st on st.store_contact_id = sc.contact_id 
+and st.store_location_id = sl.location_id 
+and st.store_info_id = si.info_id 
+join supplier_contacts suc on suc.supplier_email = m.supplier_email 
+join supplier s on s.supplier_contact_id = suc.contact_id;
