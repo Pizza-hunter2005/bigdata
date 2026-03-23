@@ -33,8 +33,7 @@
 # Запуск:
 
  ```
-git clone https://github.com/Pizza-hunter2005/BDSnowflake
-cd BDSnowflake
+git clone https://github.com/Pizza-hunter2005/bigdata
 docker compose up
 ```
 # Диаграмма 
